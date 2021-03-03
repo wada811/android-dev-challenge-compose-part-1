@@ -18,13 +18,18 @@ package com.example.androiddevchallenge
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
-import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.NavType
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.navArgument
+import androidx.navigation.compose.navigate
+import androidx.navigation.compose.rememberNavController
 import com.example.androiddevchallenge.model.Dog
+import com.example.androiddevchallenge.ui.screen.detail.DetailScreen
 import com.example.androiddevchallenge.ui.screen.list.ListScreen
 import com.example.androiddevchallenge.ui.theme.MyTheme
 
@@ -43,8 +48,28 @@ class MainActivity : AppCompatActivity() {
 @Composable
 fun MyApp() {
     Surface(color = MaterialTheme.colors.background) {
-//        Text(text = "Ready... Set... GO!")
-        ListScreen(Dog.values().toList())
+        val navController = rememberNavController()
+        NavHost(navController, startDestination = "list") {
+            composable("list") {
+                ListScreen(Dog.values().toList()) {
+                    navController.navigate("detail/${it.ordinal}")
+                }
+            }
+            composable(
+                route = "detail/{dogIndex}",
+                arguments = listOf(
+                    navArgument("dogIndex") {
+                        this.type = NavType.IntType
+                        this.nullable = false
+                        this.defaultValue = -1
+                    }
+                )
+            ) {
+                val dogIndex = it.arguments?.getInt("dogIndex", -1)?.takeIf { it != -1 } ?: return@composable
+                val dog = Dog.values()[dogIndex]
+                DetailScreen(dog = dog)
+            }
+        }
     }
 }
 
